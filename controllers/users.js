@@ -1,26 +1,44 @@
-const users = require('../data/index');
 
+const users = require('../data/index');
 
 
 // Gets All Users
 const listUsers = (req, res) => {
-    return res.json(users);
+    try {
+      return res.json(users);
+    } catch (error) {
+      res.status(400).send("Oh uh, we couldn't find any data");
+    }
+  
 };
 
 // Gets ONE user
-const showUser =(req, res) => {
-    res.json(users.filter(user => user._id === parseInt(req.params.id)))
+const showUser = (req, res, next) => {
+    let found = users.filter(user => user.id === parseInt(req.params.id))
+  if(found.length === 0)return next(new Error("Id does not exist"))
+      res.json(users)
   };
 
   // Creates new user
 const createUser = (req, res) => {
-    const length = users.length;
+    try {
+      console.log(req.body)
+      if(req.body.length == null){
+        throw new Error("You must provide details")
+      }
+      const length = users.length;
     const newUser = {
       id: length + 1,
       ...req.body
     }
     users.push(newUser)
     res.json(users)
+      
+    } catch (error) {
+      console.log(error)
+      res.status(400).json(error.message)
+    }
+    
   };
 
   // Updates user info
@@ -33,7 +51,8 @@ const updateUser = (req, res) => {
     res.send(updatedUser)
   };
 
-// deletes User
+
+  // deletes User
   const deleteUser = (req, res) => {
     let id = +req.params.id;
     let index = users.findIndex((user) => user._id === id);
